@@ -4,8 +4,7 @@ import ical, { ICalEventData } from "npm:ical-generator@4"
 
 const flags = parse(Deno.args, {
   boolean: ["debug"],
-  string: ["budgetName", "budgetId"],
-  default: { debug: false, budgetId: "-" },
+  default: { debug: false },
 })
 
 logger.setup({  
@@ -28,11 +27,17 @@ log.debug(`CLI args passed: ${JSON.stringify(flags)}`)
 // First, we need to get the Budget ID that you want to create a calendar with. 
 // We get the list of budget IDs from YNAB, then we filter those by some info that is provided to the tool. 
 
-const ynabPersonalAccessToken = Deno.env.get("YNAB_PERSONAL_ACCESS_TOKEN")
-if (!ynabPersonalAccessToken) {
-  log.error("Forgot to provide YNAB personal access token.") 
-  Deno.exit(1)
+const assertAndGetEnvVar = (key: string): string => {
+  let value = Deno.env.get(key)
+  if (!value || value == "") {
+    log.error(`Forgot to set ${key}. I cannot run without it, exiting.`) 
+    Deno.exit(1)
+  }
+  return value.trim()
 }
+
+const ynabPersonalAccessToken = assertAndGetEnvVar("YNAB_PERSONAL_ACCESS_TOKEN")
+const ynabBudgetId = assertAndGetEnvVar("YNAB_BUDGET_ID")
 
 const ynabFetch = async<T>(path: string): Promise<T> => {
   const res = await fetch(`https://api.ynab.com${path}`, {
@@ -62,7 +67,7 @@ const ynabBudgets: {
 log.debug(`Budgets from API: ${JSON.stringify(ynabBudgets)}`)
 
 let budget = ynabBudgets.data.budgets.find(budget =>
-  budget.name == flags.budgetName || budget.id.startsWith(flags.budgetId)
+  budget.name == ynabBudgetId
 )
 if (!budget) {
   log.error(`Couldn't find budget that you specified by name or ID`)
@@ -100,9 +105,10 @@ ynabScheduledTransactions.data.scheduled_transactions.forEach(transaction => {
   // Example amount value: -98990 which is supposed to be: 98.99. So, we have some modifications to do.   
   let amount = transaction.amount / 10 // not sure why, but YNAB buts a "0" at the end of every transaction amount. Remove the last character from string. 
   amount = amount / 100 // This will give the decimal value. 
-  let amountString = String(amount).replace("-", "") // remove leading "-" 
+  const amountString = String(amount).replace("-", "") // remove leading "-" 
 
   const calendarEvent: ICalEventData = {
+    id: transaction.id,
     summary: `${transaction.payee_name} $${amountString}`,
     start: transaction.date_next,
     end: transaction.date_next,
