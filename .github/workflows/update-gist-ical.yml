@@ -2,14 +2,13 @@ name: Generate and upload ical to Gist
 
 on: 
   workflow_dispatch: # manually run 
+  pull_request: # to be able to test that it works
   schedule:
     - cron:  '0 0 * * *' # daily at midnight https://cron.help/#0_0_*_*_*
 
 jobs:
   generate-then-upload:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # be able to upload Gist
     steps: 
     - uses: actions/checkout@v3
     
