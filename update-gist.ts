@@ -1,6 +1,4 @@
-import * as logger from "https://deno.land/std@0.183.0/log/mod.ts";
-import { Octokit } from "npm:@octokit/rest@19"
-import {posix as paths, posix} from "https://deno.land/std@0.182.0/path/mod.ts";
+import {logger, Octokit, paths, posix} from "./deps.ts"
 
 export const createOrUpdateGist = async(args: {filePaths: string[], secretGist: boolean, gistDescription: string, gistDescriptionFilterablePhrase: string, log: logger.Logger}): Promise<void> => {
   const log = args.log

@@ -1,9 +1,7 @@
-import { parse } from "https://deno.land/std@0.182.0/flags/mod.ts";
-import * as logger from "https://deno.land/std@0.183.0/log/mod.ts";
-import ical, { ICalEventData } from "npm:ical-generator@4"
+import {flagsParse, logger, ical, ICalEventData } from "./deps.ts"
 import {createOrUpdateGist} from "./update-gist.ts"
 
-const flags = parse(Deno.args, {
+const flags = flagsParse(Deno.args, {
   boolean: ["debug"],
   default: { debug: false },
 })
