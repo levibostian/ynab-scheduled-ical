@@ -16,10 +16,12 @@ jobs:
       with:
         deno-version: v1.x
     
-    - run: deno run --allow-write=./ynab_scheduled.ics --allow-read=./ --allow-net=api.ynab.com,api.github.com --allow-env="YNAB_PERSONAL_ACCESS_TOKEN,YNAB_BUDGET_NAME,GIST_PERSONAL_ACCESS_TOKEN" generate-ical.ts
+    - name: Run script 
       env: 
         YNAB_PERSONAL_ACCESS_TOKEN: ${{ secrets.YNAB_PERSONAL_ACCESS_TOKEN }}
         YNAB_BUDGET_NAME: ${{ secrets.YNAB_BUDGET_NAME }}
         GIST_PERSONAL_ACCESS_TOKEN: ${{ secrets.GIST_PERSONAL_ACCESS_TOKEN }}
-    
-    
+      run: |
+        deno cache --reload --lock=deno.lock deps.ts
+        deno run --lock --cached-only --allow-write=./ynab_scheduled.ics --allow-read=./ --allow-net=api.ynab.com,api.github.com --allow-env="YNAB_PERSONAL_ACCESS_TOKEN,YNAB_BUDGET_NAME,GIST_PERSONAL_ACCESS_TOKEN" generate-ical.ts
+      
