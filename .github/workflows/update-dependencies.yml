@@ -1,0 +1,26 @@
+name: Update Deno dependencies 
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0" # every Sunday at 12am. https://cron.help/#0_0_*_*_0
+
+jobs:
+  get-token:
+    runs-on: ubuntu-latest
+    outputs:
+      token: ${{ steps.generate-token.outputs.token }}
+    steps:
+    - uses: tibdex/github-app-token@v1
+      id: generate-token
+      with:
+        app_id: ${{ secrets.GH_TOKEN_APP_ID }}
+        private_key: ${{ secrets.GH_TOKEN_APP_PRIVATE_KEY }}
+
+  update-dependencies: 
+    needs: [get-token]
+    uses: levibostian/deno-update-dependencies-workflow/.github/workflows/update-deps.yml@main
+    with:
+      files: deps.ts 
+      github-token: ${{ needs.get-token.outputs.token }}
+      lock-file: deno.lock
